@@ -15,24 +15,47 @@ class MTU:
 		indiceSimbolo = 0
 		simboloAtual = ""
 		encontrouLoop = False
+		maquinaEhFinita = self.verificarSeEhFinita()
 
-		while encontradaTransicao and not encontrouLoop:
-			simboloAtual = self.fita3[indiceSimbolo]
-			estadoAtual = self.fita2
-			encontrouLoop = self.buscarSnapshot(estadoAtual, indiceSimbolo, self.fita3)
-			print("loop")
-			self.adicionarSnapshot(estadoAtual, indiceSimbolo, self.fita3)
-			encontradaTransicao = False
-			for i in range(len(self.fita1)):
-				transicao = Transicao(self.fita1[i])
-				if(transicao.estadoAtual == estadoAtual and transicao.leitura == simboloAtual):
-					encontradaTransicao = True
-					self.fita3[indiceSimbolo] = transicao.escrita
-					self.fita2 = transicao.proximoEstado
-					indiceSimbolo = ( indiceSimbolo+1 if transicao.direcao == "1" else indiceSimbolo - 1)
-			if(indiceSimbolo > len(self.fita3)-1):
-				self.fita3.append("111")
-		# print(estadoAtual, "Fim da execução")
+		if(not maquinaEhFinita):
+			while encontradaTransicao and not (encontrouLoop):
+				print("Uma iteracao")
+				simboloAtual = self.fita3[indiceSimbolo]
+				estadoAtual = self.fita2
+
+				#Euristica do snapshot
+				encontrouLoop = self.buscarSnapshot(estadoAtual, indiceSimbolo, self.fita3)
+				self.adicionarSnapshot(estadoAtual, indiceSimbolo, self.fita3)
+
+
+				encontradaTransicao = False
+				for i in range(len(self.fita1)):
+					transicao = Transicao(self.fita1[i])
+					if(transicao.estadoAtual == estadoAtual and transicao.leitura == simboloAtual):
+						encontradaTransicao = True
+						self.fita3[indiceSimbolo] = transicao.escrita
+						self.fita2 = transicao.proximoEstado
+						indiceSimbolo = ( indiceSimbolo+1 if transicao.direcao == "1" else indiceSimbolo - 1)
+
+				if(indiceSimbolo > len(self.fita3)-1): #Se o índice do símbolo (posição de um 'caractere' da palavra de entrada) for maior que a quantidade de símbolos da entrada nós adicionamos um B no final da fita, simulando uma fita com B infinitos
+					self.fita3.append("111")
+			# print(estadoAtual, "Fim da execução")
+
+	def verificarSeEhFinita(self):
+		fita = self.fita1
+		semBAlemEstadoInicial = True
+		semTransicaoParaEsquerda = True
+		for stringTransicao in fita:
+			transicao = Transicao(stringTransicao)
+			if(transicao.leitura == "111" and transicao.estadoAtual != "1"): #Busca estado com transição lendo B(111) que não é no estado atual(1)
+				semBAlemEstadoInicial = False
+			if(transicao.direcao == "11"):
+				semTransicaoParaEsquerda = False
+
+		if(semBAlemEstadoInicial and semTransicaoParaEsquerda):
+			print("A máquina pára")
+		return (semBAlemEstadoInicial and semTransicaoParaEsquerda)
+
 
 	def adicionarSnapshot(self, estadoAtual, indiceSimbolo, fita3):
 		self.arrSnapshots.append((estadoAtual, indiceSimbolo, copy.copy(fita3)))
@@ -40,7 +63,7 @@ class MTU:
 	def buscarSnapshot(self, estadoAtual, indiceSimbolo, fita3):
 		for snapshot in self.arrSnapshots:
 			if(snapshot == (estadoAtual, indiceSimbolo, fita3)):
-				print("Entrou em loop")
+				print("Entrou em loop infinito")
 				return True
 		return False
 			
@@ -70,7 +93,7 @@ def main():
 	# entrada = "0001011101101110100110101110101001110111011011101000111010111"
 	# entrada = "000101110110111010011010111010100110110111101101001110110111011010011101110111110111011001111010111101010011110111011111011101100011101011011011000"
 	# entrada = "00010111011011101001101011101010011101011010110001110101"
-	entrada = "00010111011011101001101011101010011101110111101110100011101"
+	entrada = "000"+"1011101101110100"+"11010111010100"+"11101101111011101"+"000"+"11101"
 	#Entrada = 11101011011011000
 	objMtu = MTU(entrada)
 	objMtu.executar()
