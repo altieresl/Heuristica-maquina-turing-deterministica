@@ -94,13 +94,20 @@ class Transicao: #Classe auxiliar para transformar uma string de transição em 
 		self.escrita = aux[3]
 		self.direcao = aux[4]
 
+def pegarMaquinaEEntrada(caminhoArquivo):
+	arquivo = open(caminhoArquivo)
+	rmw = arquivo.read()
+	return rmw
+
 def main():
-	entrada = ""
+	caminhoArquivo = ""
 	if(len(sys.argv) > 1):
-		entrada = sys.argv[1]
+		caminhoArquivo = sys.argv[1]
 	else:
 		print("É necessário passar um argumento com a configuração da máquina e a palavra rm(w)")
-	objUH = UH(entrada)
+	rmw = pegarMaquinaEEntrada(caminhoArquivo)
+
+	objUH = UH(rmw)
 	objUH.executar()
 
 if __name__ == '__main__':
